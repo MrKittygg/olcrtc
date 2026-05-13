@@ -114,11 +114,17 @@ func (l *PionLeveledLogger) Debugf(format string, args ...any) {
 
 // Info logs an info message.
 func (l *PionLeveledLogger) Info(msg string) {
+	if l.scope == "srtp" {
+		return
+	}
 	log.Printf("[%s] INFO: %s", l.scope, msg)
 }
 
 // Infof logs a formatted info message.
 func (l *PionLeveledLogger) Infof(format string, args ...any) {
+	if l.scope == "srtp" {
+		return
+	}
 	log.Printf("[%s] INFO: %s", l.scope, fmt.Sprintf(format, args...))
 }
 

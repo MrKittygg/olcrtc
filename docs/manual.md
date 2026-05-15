@@ -145,7 +145,37 @@ openssl rand -hex 32
 
 На серверной машине (VPS и т.д.). Подбери нужную комбинацию carrier + transport из матрицы в [settings.md](settings.md).
 
-### wbstream + vp8channel (рекомендуется)
+### jitsi + datachannel (рекомендуется)
+
+Самый простой способ: используй любой self-hosted или публичный Jitsi Meet инстанс. Регистрация не нужна, имя комнаты выдумывается на лету. По умолчанию в примерах ниже — `meet.cryptopro.ru` (публичный CryptoPro Jitsi), но подойдёт любой другой (`meet.jit.si`, свой self-hosted и т.п.).
+
+Создай YAML конфиг:
+
+```yaml
+# server.yaml
+mode: srv
+link: direct
+auth:
+  provider: jitsi
+room:
+  id: "https://meet.cryptopro.ru/myroom"
+crypto:
+  key: "d823fa01cb3e0609b67322f7cf984c4ee2e4ce2e294936fc24ef38c9e59f4799"
+net:
+  transport: datachannel
+  dns: "1.1.1.1:53"
+data: data
+```
+
+Запусти:
+
+```sh
+./build/olcrtc-linux-amd64 server.yaml
+```
+
+Сервер сам присоединится к комнате (в качестве участника без камеры/микрофона) и будет ждать, пока клиент тоже зайдёт. Без второго участника Jicofo не выдаёт session-initiate — это особенность Jitsi.
+
+### wbstream + vp8channel (альтернатива)
 
 Сначала создай руму вручную через сайт [wbstream](https://stream.wb.ru) (автогенерация через `mode: gen` для wbstream больше не поддерживается) и сохрани её ID.
 
@@ -195,7 +225,34 @@ Room ID нужно передать клиенту.
 
 На своей машине. Auth provider, transport, room ID и key должны совпадать с сервером.
 
-### wbstream + vp8channel
+### jitsi + datachannel (рекомендуется)
+
+```yaml
+# client.yaml
+mode: cnc
+link: direct
+auth:
+  provider: jitsi
+room:
+  id: "https://meet.cryptopro.ru/myroom"
+crypto:
+  key: "<hex-key-такой-же-как-на-сервере>"
+net:
+  transport: datachannel
+  dns: "1.1.1.1:53"
+socks:
+  host: "127.0.0.1"
+  port: 8808
+data: data
+```
+
+```sh
+./build/olcrtc-linux-amd64 client.yaml
+```
+
+После запуска SOCKS5 будет слушать на `127.0.0.1:8808`. Используй любой клиент с поддержкой SOCKS5 (`curl --socks5 127.0.0.1:8808 ...`, браузер с переключателем прокси и т.п.).
+
+### wbstream + vp8channel (альтернатива)
 
 ```yaml
 # client.yaml

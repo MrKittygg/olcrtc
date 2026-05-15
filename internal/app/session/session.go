@@ -46,7 +46,7 @@ var (
 	ErrAmountRequired = errors.New("amount required for gen mode (use -amount <n>)")
 	// ErrAuthRequired indicates that no auth provider was selected.
 	ErrAuthRequired = errors.New(
-		"auth provider required (use -auth telemost, -auth jazz, -auth wbstream or -auth none)")
+		"auth provider required (use -auth jitsi, -auth telemost, -auth jazz, -auth wbstream or -auth none)")
 	// ErrURLRequired indicates that -url must be provided when the auth provider has no default URL.
 	ErrURLRequired = errors.New("SFU URL required (use -url wss://...)")
 	// ErrUnsupportedCarrier indicates that carrier is not registered.

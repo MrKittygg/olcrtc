@@ -57,7 +57,7 @@ var (
 	)
 	realE2ECarriers = flag.String( //nolint:gochecknoglobals // package-level state intentional
 		"olcrtc.real-carriers",
-		"telemost,wbstream",
+		"jitsi,telemost,wbstream",
 		"comma-separated carriers for real e2e",
 	)
 	realE2ETransports = flag.String( //nolint:gochecknoglobals // package-level state intentional

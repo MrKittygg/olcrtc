@@ -446,34 +446,31 @@ func (p *streamTransport) handleSample(sample []byte) {
 			continue
 		}
 
-		// Multi-party MUCs (e.g. Jitsi) can deliver frames from other peers,
-		// or RTP echo from previously-closed sessions, to our PeerConnection.
-		// Once we've identified the real partner's channelID, drop everything
-		// else. We can't pin the partner from a raw frame header alone — a
-		// stray RTP packet might decode to a valid magic/version by chance —
-		// so the pin happens downstream, only after a CRC-validated payload
-		// (DATA) or a matching ACK waiter has confirmed the sender is ours.
-		if pinned := p.peerChannelID.Load(); pinned != 0 && frame.channelID != pinned {
+		// Multi-party MUCs (e.g. Jitsi) can deliver frames from other
+		// peers — or RTP echo from previously-closed sessions — to our
+		// PeerConnection. The first valid frame we see fixes the peer's
+		// channelID; later frames with a different ID are silently dropped.
+		if !p.acceptChannel(frame.channelID) {
 			continue
 		}
 
 		switch frame.typ {
 		case frameTypeAck:
-			p.resolveAck(frame.channelID, frame.seq, frame.crc)
+			p.resolveAck(frame.seq, frame.crc)
 		case frameTypeData:
 			p.handleInboundFrame(frame)
 		}
 	}
 }
 
-// pinPeerChannel commits the partner's channelID after a frame from them has
-// been validated downstream. It's a one-shot CAS — later validated frames
-// keep the same partner. id==0 is never accepted.
-func (p *streamTransport) pinPeerChannel(id uint32) {
+func (p *streamTransport) acceptChannel(id uint32) bool {
 	if id == 0 {
-		return
+		return false
 	}
-	p.peerChannelID.CompareAndSwap(0, id)
+	if p.peerChannelID.CompareAndSwap(0, id) {
+		return true
+	}
+	return p.peerChannelID.Load() == id
 }
 
 func (p *streamTransport) upsertInbound(frame transportFrame) (*inboundMessage, bool) {
@@ -514,9 +511,6 @@ func (p *streamTransport) handleInboundFrame(frame transportFrame) {
 	p.recvMu.Lock()
 	if crc, ok := p.delivered[frame.seq]; ok && crc == frame.crc {
 		p.recvMu.Unlock()
-		// Already-delivered duplicate: the peer is genuine (we accepted
-		// this seq earlier and CRC-matched it), so pin and re-ack.
-		p.pinPeerChannel(frame.channelID)
 		p.sendAck(frame.seq, frame.crc)
 		return
 	}
@@ -541,11 +535,6 @@ func (p *streamTransport) handleInboundFrame(frame transportFrame) {
 	p.delivered[frame.seq] = msg.crc
 	p.recvMu.Unlock()
 
-	// CRC validated end-to-end — this is our real partner. Pin their
-	// channelID so future stray frames from other MUC participants are
-	// dropped before reaching the reassembler.
-	p.pinPeerChannel(frame.channelID)
-
 	if p.onData != nil {
 		p.onData(data)
 	}
@@ -556,7 +545,7 @@ func (p *streamTransport) sendAck(seq, crc uint32) {
 	_ = p.enqueueFrame(encodeAckFrame(p.localChannelID, seq, crc), true)
 }
 
-func (p *streamTransport) resolveAck(channelID, seq, crc uint32) {
+func (p *streamTransport) resolveAck(seq, crc uint32) {
 	p.ackMu.Lock()
 	waiter := p.ackWaiters[seq]
 	p.ackMu.Unlock()
@@ -564,10 +553,6 @@ func (p *streamTransport) resolveAck(channelID, seq, crc uint32) {
 	if waiter == nil {
 		return
 	}
-
-	// The ACK matched a seq we're actually waiting for, so it came from our
-	// real partner; pin their channelID for downstream filtering.
-	p.pinPeerChannel(channelID)
 
 	select {
 	case waiter <- crc:

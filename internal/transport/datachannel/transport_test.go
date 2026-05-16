@@ -100,13 +100,15 @@ func TestNewAndFeatures(t *testing.T) {
 
 func TestNewErrorPaths(t *testing.T) {
 	registerCarrier("datachannel-fail-create", nil, errDCBoom)
-	if _, err := New(context.Background(), transport.Config{Carrier: "datachannel-fail-create"}); err == nil || err.Error() != "open engine session: boom" {
+	_, err := New(context.Background(), transport.Config{Carrier: "datachannel-fail-create"})
+	if err == nil || err.Error() != "open engine session: boom" {
 		t.Fatalf("New() error = %v", err)
 	}
 
 	nonByteStream := &stubSession{caps: engine.Capabilities{}}
 	registerCarrier("datachannel-no-stream", nonByteStream, nil)
-	if _, err := New(context.Background(), transport.Config{Carrier: "datachannel-no-stream"}); !errors.Is(err, ErrByteStreamUnsupported) {
+	_, err = New(context.Background(), transport.Config{Carrier: "datachannel-no-stream"})
+	if !errors.Is(err, ErrByteStreamUnsupported) {
 		t.Fatalf("New() error = %v, want %v", err, ErrByteStreamUnsupported)
 	}
 }

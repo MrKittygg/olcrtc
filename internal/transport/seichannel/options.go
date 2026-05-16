@@ -2,6 +2,7 @@ package seichannel
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/openlibrecommunity/olcrtc/internal/transport"
 )
@@ -16,6 +17,23 @@ type Options struct {
 
 // TransportOptions marks Options as belonging to the transport options family.
 func (Options) TransportOptions() {}
+
+// withDefaults fills unset Options fields with the package defaults.
+func (o Options) withDefaults() Options {
+	if o.FPS <= 0 {
+		o.FPS = defaultFPS
+	}
+	if o.BatchSize <= 0 {
+		o.BatchSize = defaultBatchSize
+	}
+	if o.FragmentSize <= 0 {
+		o.FragmentSize = defaultFragmentSize
+	}
+	if o.AckTimeoutMS <= 0 {
+		o.AckTimeoutMS = int(defaultAckTimeout / time.Millisecond)
+	}
+	return o
+}
 
 func optionsFrom(cfg transport.Config) (Options, error) {
 	if cfg.Options == nil {

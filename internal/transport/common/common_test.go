@@ -43,9 +43,9 @@ func TestReassemblerDeliveredAndDuplicate(t *testing.T) {
 		result, data := r.Push(common.Fragment{
 			Seq:       1,
 			CRC:       crc,
-			TotalLen:  uint32(len(payload)),
+			TotalLen:  uint32(len(payload)),  //nolint:gosec // bounded test fixture
 			FragIdx:   uint16(i),
-			FragTotal: uint16(len(frags)),
+			FragTotal: uint16(len(frags)),    //nolint:gosec // bounded test fixture
 			Payload:   frag,
 		})
 		if i < len(frags)-1 {
@@ -63,9 +63,9 @@ func TestReassemblerDeliveredAndDuplicate(t *testing.T) {
 	result, _ := r.Push(common.Fragment{
 		Seq:       1,
 		CRC:       crc,
-		TotalLen:  uint32(len(payload)),
-		FragIdx:   uint16(len(frags) - 1),
-		FragTotal: uint16(len(frags)),
+		TotalLen:  uint32(len(payload)),      //nolint:gosec // bounded test fixture
+		FragIdx:   uint16(len(frags) - 1),    //nolint:gosec // bounded test fixture
+		FragTotal: uint16(len(frags)),        //nolint:gosec // bounded test fixture
 		Payload:   frags[len(frags)-1],
 	})
 	if result != common.ResultDuplicate {
@@ -80,9 +80,9 @@ func TestReassemblerIgnoresCRCMismatch(t *testing.T) {
 	result, _ := r.Push(common.Fragment{
 		Seq:       1,
 		CRC:       0xdeadbeef, // wrong
-		TotalLen:  uint32(len(payload)),
+		TotalLen:  uint32(len(payload)),  //nolint:gosec // bounded test fixture
 		FragIdx:   0,
-		FragTotal: uint16(len(frags)),
+		FragTotal: uint16(len(frags)),    //nolint:gosec // bounded test fixture
 		Payload:   frags[0],
 	})
 	if result != common.ResultDelivered {

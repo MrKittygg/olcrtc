@@ -150,23 +150,7 @@ func New(ctx context.Context, cfg transport.Config) (transport.Transport, error)
 		return nil, fmt.Errorf("create local video track: %w", err)
 	}
 
-	fps := opts.FPS
-	if fps <= 0 {
-		fps = defaultFPS
-	}
-	batchSize := opts.BatchSize
-	if batchSize <= 0 {
-		batchSize = defaultBatchSize
-	}
-	fragmentSize := opts.FragmentSize
-	if fragmentSize <= 0 {
-		fragmentSize = defaultFragmentSize
-	}
-	ackTimeout := defaultAckTimeout
-	if opts.AckTimeoutMS > 0 {
-		ackTimeout = time.Duration(opts.AckTimeoutMS) * time.Millisecond
-	}
-
+	opts = opts.withDefaults()
 	tr := &streamTransport{
 		stream:        stream,
 		track:         track,
@@ -177,10 +161,10 @@ func New(ctx context.Context, cfg transport.Config) (transport.Transport, error)
 		writerDone:    make(chan struct{}),
 		acks:          common.NewAckRegistry(),
 		reassembler:   common.NewReassembler(256),
-		fragmentSize:  fragmentSize,
-		ackTimeout:    ackTimeout,
-		frameInterval: time.Second / time.Duration(fps),
-		batchSize:     batchSize,
+		fragmentSize:  opts.FragmentSize,
+		ackTimeout:    time.Duration(opts.AckTimeoutMS) * time.Millisecond,
+		frameInterval: time.Second / time.Duration(opts.FPS),
+		batchSize:     opts.BatchSize,
 	}
 
 	if err := stream.AddTrack(track); err != nil {
@@ -470,8 +454,8 @@ func (p *streamTransport) handleInboundFrame(frame transportFrame) {
 			p.onData(data)
 		}
 		p.sendAck(frame.seq, frame.crc)
-	default:
-		// Partial or Ignore: do nothing.
+	case common.ResultPartial, common.ResultIgnore:
+		// fragment stored or discarded; no peer response needed yet.
 	}
 }
 

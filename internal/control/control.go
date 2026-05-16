@@ -309,9 +309,16 @@ func parseMessage(raw []byte) (Message, error) {
 }
 
 func writeFrame(w io.Writer, msg Message) error {
-	return framing.WriteJSON(w, msg, MaxMessageSize)
+	if err := framing.WriteJSON(w, msg, MaxMessageSize); err != nil {
+		return fmt.Errorf("control: %w", err)
+	}
+	return nil
 }
 
 func readFrame(r io.Reader) ([]byte, error) {
-	return framing.ReadBytes(r, MaxMessageSize)
+	body, err := framing.ReadBytes(r, MaxMessageSize)
+	if err != nil {
+		return nil, fmt.Errorf("control: %w", err)
+	}
+	return body, nil
 }

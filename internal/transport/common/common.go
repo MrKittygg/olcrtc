@@ -114,31 +114,47 @@ func (r *Reassembler) Push(fragment Fragment) (Result, []byte) {
 		return ResultDuplicate, nil
 	}
 
-	msg, ok := r.inbound[fragment.Seq]
-	if !ok || msg.CRC != fragment.CRC || msg.TotalLen != fragment.TotalLen ||
-		len(msg.frags) != int(fragment.FragTotal) {
-		msg = &InboundMessage{
-			TotalLen: fragment.TotalLen,
-			CRC:      fragment.CRC,
-			frags:    make([][]byte, fragment.FragTotal),
-			remain:   int(fragment.FragTotal),
-		}
-		r.inbound[fragment.Seq] = msg
-	}
+	msg := r.upsert(fragment)
 	if int(fragment.FragIdx) >= len(msg.frags) {
 		return ResultIgnore, nil
 	}
-	if msg.frags[fragment.FragIdx] == nil {
-		chunk := make([]byte, len(fragment.Payload))
-		copy(chunk, fragment.Payload)
-		msg.frags[fragment.FragIdx] = chunk
-		msg.remain--
-	}
+	r.storeChunk(msg, fragment)
 	if msg.remain > 0 {
 		return ResultPartial, nil
 	}
+	return r.deliver(fragment.Seq, msg)
+}
 
-	delete(r.inbound, fragment.Seq)
+// upsert returns the inbound message tracking entry for fragment.Seq,
+// creating a fresh entry if no compatible one is present.
+func (r *Reassembler) upsert(fragment Fragment) *InboundMessage {
+	msg, ok := r.inbound[fragment.Seq]
+	if ok && msg.CRC == fragment.CRC && msg.TotalLen == fragment.TotalLen &&
+		len(msg.frags) == int(fragment.FragTotal) {
+		return msg
+	}
+	msg = &InboundMessage{
+		TotalLen: fragment.TotalLen,
+		CRC:      fragment.CRC,
+		frags:    make([][]byte, fragment.FragTotal),
+		remain:   int(fragment.FragTotal),
+	}
+	r.inbound[fragment.Seq] = msg
+	return msg
+}
+
+func (r *Reassembler) storeChunk(msg *InboundMessage, fragment Fragment) {
+	if msg.frags[fragment.FragIdx] != nil {
+		return
+	}
+	chunk := make([]byte, len(fragment.Payload))
+	copy(chunk, fragment.Payload)
+	msg.frags[fragment.FragIdx] = chunk
+	msg.remain--
+}
+
+func (r *Reassembler) deliver(seq uint32, msg *InboundMessage) (Result, []byte) {
+	delete(r.inbound, seq)
 	data := assemble(msg)
 	if crc32.ChecksumIEEE(data) != msg.CRC {
 		return ResultIgnore, nil
@@ -146,7 +162,7 @@ func (r *Reassembler) Push(fragment Fragment) (Result, []byte) {
 	if len(r.delivered) > r.maxRecent {
 		r.delivered = make(map[uint32]uint32)
 	}
-	r.delivered[fragment.Seq] = msg.CRC
+	r.delivered[seq] = msg.CRC
 	return ResultDelivered, data
 }
 

@@ -125,7 +125,9 @@ func New(ctx context.Context, cfg transport.Config) (transport.Transport, error)
 	// Stream/track IDs must be unique per peer: Jitsi/Jicofo keys participant
 	// sources by msid (stream-id+track-id) and rejects a session-accept whose
 	// msid collides with one already in the conference.
-	track, err := webrtc.NewTrackLocalStaticSample(codec.capability, "videochannel-"+common.RandomID(), "olcrtc-"+common.RandomID())
+	streamID := "videochannel-" + common.RandomID()
+	trackID := "olcrtc-" + common.RandomID()
+	track, err := webrtc.NewTrackLocalStaticSample(codec.capability, streamID, trackID)
 	if err != nil {
 		return nil, fmt.Errorf("create local video track: %w", err)
 	}
@@ -580,8 +582,8 @@ func (p *streamTransport) handleInboundFrame(frame transportFrame) {
 			p.onData(data)
 		}
 		p.sendAck(frame.seq, frame.crc)
-	default:
-		// Partial or Ignore: do nothing.
+	case common.ResultPartial, common.ResultIgnore:
+		// fragment stored or discarded; no peer response needed yet.
 	}
 }
 

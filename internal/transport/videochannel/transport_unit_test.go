@@ -129,17 +129,22 @@ func TestNewCallbacksFeaturesAndClose(t *testing.T) {
 }
 
 func TestNewErrorPaths(t *testing.T) {
-	enginebuiltin.Register("videochannel-create-fails", func(context.Context, enginebuiltin.Config) (engine.Session, error) {
-		return nil, errVideoUnitBoom
-	})
-	if _, err := New(context.Background(), transport.Config{Carrier: "videochannel-create-fails"}); err == nil || err.Error() != "open engine session: boom" { //nolint:lll // long test description
+	enginebuiltin.Register(
+		"videochannel-create-fails",
+		func(context.Context, enginebuiltin.Config) (engine.Session, error) {
+			return nil, errVideoUnitBoom
+		},
+	)
+	_, err := New(context.Background(), transport.Config{Carrier: "videochannel-create-fails"})
+	if err == nil || err.Error() != "open engine session: boom" {
 		t.Fatalf("New() error = %v", err)
 	}
 
 	enginebuiltin.Register("videochannel-no-video", func(context.Context, enginebuiltin.Config) (engine.Session, error) {
 		return &fakeEngineSession{stream: &fakeVideoStream{}, noVideo: true}, nil
 	})
-	if _, err := New(context.Background(), transport.Config{Carrier: "videochannel-no-video"}); !errors.Is(err, ErrVideoTrackUnsupported) {
+	_, err = New(context.Background(), transport.Config{Carrier: "videochannel-no-video"})
+	if !errors.Is(err, ErrVideoTrackUnsupported) {
 		t.Fatalf("New() error = %v, want %v", err, ErrVideoTrackUnsupported)
 	}
 }

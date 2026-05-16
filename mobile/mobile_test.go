@@ -78,7 +78,6 @@ func TestProtectorAndLogging(t *testing.T) {
 	}
 }
 
-//nolint:cyclop // compact setter smoke test verifies several related defaults together
 func TestDefaultsAndSetters(t *testing.T) {
 	resetMobileGlobals(t)
 

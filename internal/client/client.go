@@ -504,7 +504,11 @@ func (c *Client) shutdown() {
 }
 
 func setupCipher(keyHex string) (*crypto.Cipher, error) {
-	return runtime.SetupCipher(keyHex)
+	cipher, err := runtime.SetupCipher(keyHex)
+	if err != nil {
+		return nil, fmt.Errorf("client: %w", err)
+	}
+	return cipher, nil
 }
 
 func (c *Client) onData(data []byte) {

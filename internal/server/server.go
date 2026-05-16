@@ -183,7 +183,11 @@ func Run(ctx context.Context, cfg Config) error {
 }
 
 func setupCipher(keyHex string) (*crypto.Cipher, error) {
-	return runtime.SetupCipher(keyHex)
+	cipher, err := runtime.SetupCipher(keyHex)
+	if err != nil {
+		return nil, fmt.Errorf("server: %w", err)
+	}
+	return cipher, nil
 }
 
 func (s *Server) setupResolver() {

@@ -262,8 +262,8 @@ func TestConfigureLogging(t *testing.T) {
 	if !logger.IsVerbose() {
 		t.Fatal("configureLogging(true) did not enable verbose logging")
 	}
-	if got := os.Getenv("PION_LOG_DISABLE"); got != "" {
-		t.Fatalf("configureLogging(true) PION_LOG_DISABLE = %q, want empty", got)
+	if got := os.Getenv("PION_LOG_DISABLE"); got != "turnc" {
+		t.Fatalf("configureLogging(true) PION_LOG_DISABLE = %q, want turnc", got)
 	}
 
 	logger.SetVerbose(false)

@@ -4,6 +4,7 @@ package logger
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync/atomic"
 
 	"github.com/pion/logging"
@@ -114,7 +115,7 @@ func (l *PionLeveledLogger) Debugf(format string, args ...any) {
 
 // Info logs an info message.
 func (l *PionLeveledLogger) Info(msg string) {
-	if l.scope == "srtp" {
+	if shouldDropPionLog(l.scope, msg) {
 		return
 	}
 	log.Printf("[%s] INFO: %s", l.scope, msg)
@@ -122,28 +123,53 @@ func (l *PionLeveledLogger) Info(msg string) {
 
 // Infof logs a formatted info message.
 func (l *PionLeveledLogger) Infof(format string, args ...any) {
-	if l.scope == "srtp" {
+	msg := fmt.Sprintf(format, args...)
+	if shouldDropPionLog(l.scope, msg) {
 		return
 	}
-	log.Printf("[%s] INFO: %s", l.scope, fmt.Sprintf(format, args...))
+	log.Printf("[%s] INFO: %s", l.scope, msg)
 }
 
 // Warn logs a warning message.
 func (l *PionLeveledLogger) Warn(msg string) {
+	if shouldDropPionLog(l.scope, msg) {
+		return
+	}
 	log.Printf("[%s] WARN: %s", l.scope, msg)
 }
 
 // Warnf logs a formatted warning message.
 func (l *PionLeveledLogger) Warnf(format string, args ...any) {
-	log.Printf("[%s] WARN: %s", l.scope, fmt.Sprintf(format, args...))
+	msg := fmt.Sprintf(format, args...)
+	if shouldDropPionLog(l.scope, msg) {
+		return
+	}
+	log.Printf("[%s] WARN: %s", l.scope, msg)
 }
 
 // Error logs an error message.
 func (l *PionLeveledLogger) Error(msg string) {
+	if shouldDropPionLog(l.scope, msg) {
+		return
+	}
 	log.Printf("[%s] ERROR: %s", l.scope, msg)
 }
 
 // Errorf logs a formatted error message.
 func (l *PionLeveledLogger) Errorf(format string, args ...any) {
-	log.Printf("[%s] ERROR: %s", l.scope, fmt.Sprintf(format, args...))
+	msg := fmt.Sprintf(format, args...)
+	if shouldDropPionLog(l.scope, msg) {
+		return
+	}
+	log.Printf("[%s] ERROR: %s", l.scope, msg)
+}
+
+func shouldDropPionLog(scope, msg string) bool {
+	scope = strings.ToLower(scope)
+	if scope == "srtp" || scope == "turnc" {
+		return true
+	}
+	msg = strings.ToLower(msg)
+	return strings.Contains(msg, "refresh permissions") ||
+		strings.Contains(msg, "createpermission error response")
 }

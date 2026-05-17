@@ -337,6 +337,7 @@ func configureLogging(debug bool) {
 	log.SetOutput(filteredWriter{w: os.Stderr})
 	if debug {
 		logger.SetVerbose(true)
+		_ = os.Setenv("PION_LOG_DISABLE", "turnc")
 		return
 	}
 	_ = os.Setenv("PION_LOG_DISABLE", "all")

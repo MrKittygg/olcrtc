@@ -70,3 +70,22 @@ func TestVerboseAndDebugLogging(t *testing.T) {
 		}
 	}
 }
+
+func TestPionLoggerDropsTURNRefreshNoise(t *testing.T) {
+	buf := captureLogs(t)
+
+	turnc := NewPionLoggerFactory().NewLogger("turnc")
+	turnc.Errorf("Fail to refresh permissions: %s", "CreatePermission error response")
+
+	ice := NewPionLoggerFactory().NewLogger("ice")
+	ice.Errorf("Fail to refresh permissions: %s", "CreatePermission error response")
+	ice.Warn("normal warning")
+
+	got := buf.String()
+	if strings.Contains(got, "turnc") || strings.Contains(got, "refresh permissions") {
+		t.Fatalf("unexpected TURN refresh noise in log output: %q", got)
+	}
+	if !strings.Contains(got, "normal warning") {
+		t.Fatalf("expected normal warning to pass through, got %q", got)
+	}
+}

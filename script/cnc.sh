@@ -160,14 +160,7 @@ fi
 
 echo ""
 read -p "DNS server [default: 8.8.8.8:53]: " DNS_INPUT
-DNS_RAW=${DNS_INPUT:-8.8.8.8:53}
-
-# Map 127.0.0.1 to host.containers.internal for container access
-DNS="$DNS_RAW"
-if [[ "$DNS_RAW" == "127.0.0.1"* ]] || [[ "$DNS_RAW" == "localhost"* ]]; then
-    DNS="${DNS_RAW/127.0.0.1/host.containers.internal}"
-    DNS="${DNS/localhost/host.containers.internal}"
-fi
+DNS=${DNS_INPUT:-8.8.8.8:53}
 
 echo ""
 read -p "SOCKS5 ip [default: 127.0.0.1]: " IP_INPUT
@@ -187,6 +180,17 @@ if [ -n "$SOCKS_USER" ]; then
     echo ""
     SOCKS_PASS=${SOCKS_PASS_INPUT:-}
 fi
+
+case "$SOCKS_IP" in
+    127.*|localhost|::1|\[::1\])
+        ;;
+    *)
+        if [ -z "$SOCKS_USER" ] || [ -z "$SOCKS_PASS" ]; then
+            echo "[X] SOCKS auth required when binding outside loopback (set username and password)"
+            exit 1
+        fi
+        ;;
+esac
 
 # Transport-specific settings
 VIDEO_W=1920; VIDEO_H=1080; VIDEO_FPS=30; VIDEO_BITRATE="2M"; VIDEO_HW="none"
@@ -332,7 +336,7 @@ net:
   transport: "$TRANSPORT"
   dns: "$DNS"
 socks:
-  host: "0.0.0.0"
+  host: "$SOCKS_IP"
   port: $SOCKS_PORT
 EOF
 
@@ -389,9 +393,8 @@ if [ "$TRANSPORT" = "videochannel" ]; then
 fi
 podman run -d \
     --name "$CONTAINER_NAME" \
-    --add-host=host.containers.internal:host-gateway \
+    --network host \
     --restart unless-stopped \
-    -p "$SOCKS_IP:$SOCKS_PORT:$SOCKS_PORT" \
     -v "$WORK_DIR":/app:Z \
     -w /app \
     "$IMAGE_NAME" \

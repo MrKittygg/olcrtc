@@ -2,8 +2,6 @@
 
 ![Westand](docs/asset/westand.svg)
 
-<img src="https://github.com/openlibrecommunity/material/blob/master/olcrtc.png" width="250" height="250">
-
 ![License](https://img.shields.io/badge/license-WTFPL-0D1117?style=flat-square&logo=open-source-initiative&logoColor=green&labelColor=0D1117)
 ![Golang](https://img.shields.io/badge/-Golang-0D1117?style=flat-square&logo=go&logoColor=00A7D0)
 
@@ -37,7 +35,7 @@ You need Go 1.26+ and mage.
 
 ```sh
 go install github.com/magefile/mage@latest
-git clone https://github.com/openlibrecommunity/olcrtc --recurse-submodules
+git clone https://github.com/mrinventorgg/olcrtc --recurse-submodules
 cd olcrtc
 mage build
 ```
@@ -87,22 +85,8 @@ mage mobile  # gomobile bindings (Android)
 
 ## Community
 
-- Telegram: [@openlibrecommunity](https://t.me/openlibrecommunity)
-- Issues: [github.com/openlibrecommunity/olcrtc/issues](https://github.com/openlibrecommunity/olcrtc/issues)
 - Community UI client: [alananisimov/olcbox](https://github.com/alananisimov/olcbox)
 
 ## License
 
 WTFPL
-
-<div align="center">
-
----
-
-Telegram: [zarazaex](https://t.me/zarazaexe)
-<br>
-Email: [zarazaex@tuta.io](mailto:zarazaex@tuta.io)
-<br>
-Site: [zarazaex.xyz](https://zarazaex.xyz)
-
-</div>

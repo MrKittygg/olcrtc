@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -eo pipefail
 
 GO_VERSION="1.26.3"
 GO_ARCHIVE="go${GO_VERSION}.linux-amd64.tar.gz"
@@ -92,38 +92,66 @@ echo "======================================"
 
 mage build
 
+if [[ ! -f build/olcrtc-linux-amd64 ]]; then
+    echo "Ошибка: сборка завершилась неудачно."
+    exit 1
+fi
+
 echo
 echo "======================================"
 echo "Настройка сервера"
 echo "======================================"
 
-read -rp "Введите URL комнаты Jitsi: " ROOM_ID
-read -rsp "Введите ключ шифрования: " CRYPTO_KEY
-echo
+while true; do
+    printf "Введите URL комнаты Jitsi: "
+    IFS= read -r ROOM_ID
 
-if [[ -z "$ROOM_ID" ]]; then
-    echo "Ошибка: URL комнаты не может быть пустым."
-    exit 1
-fi
+    if [[ -n "$ROOM_ID" ]]; then
+        break
+    fi
 
-if [[ -z "$CRYPTO_KEY" ]]; then
-    echo "Ошибка: ключ шифрования не может быть пустым."
-    exit 1
-fi
+    echo "URL комнаты не может быть пустым."
+done
 
-cat > server.yaml <<EOF
+while true; do
+    printf "Введите ключ шифрования: "
+    IFS= read -rs CRYPTO_KEY
+    echo
+
+    if [[ -n "$CRYPTO_KEY" ]]; then
+        break
+    fi
+
+    echo "Ключ не может быть пустым."
+done
+
+cat > server.yaml <<'EOF'
 mode: srv
+
 auth:
   provider: jitsi
+
 room:
-  id: "${ROOM_ID}"
+  id: "ROOM_ID"
+
 crypto:
-  key: "${CRYPTO_KEY}"
+  key: "CRYPTO_KEY"
+
 net:
   transport: datachannel
   dns: "8.8.8.8:53"
+
+liveness:
+  interval: 10s
+  timeout: 5s
+  failures: 3
+
 data: data
+debug: false
 EOF
+
+sed -i "s|ROOM_ID|${ROOM_ID}|g" server.yaml
+sed -i "s|CRYPTO_KEY|${CRYPTO_KEY}|g" server.yaml
 
 echo
 echo "======================================"

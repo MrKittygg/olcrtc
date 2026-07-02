@@ -9,12 +9,12 @@ auth:
 # Для telemost: Room ID, который вернул сервис.
 # Должен совпадать с клиентом.
 room:
-  id: "REPLACE_WITH_TELEMOST_ROOM_ID"
+  id: "ROOM_ID"
 
 crypto:
   # 32 байта в hex (64 символа). Сгенерировать: openssl rand -hex 32
   # Можно использовать key_file: "./olcrtc.key", чтобы не хранить секрет прямо здесь.
-  key: "REPLACE_ME_WITH_64_HEX_CHARS" # должен совпадать с клиентом
+  key: "CRYPTO_KEY" # должен совпадать с клиентом
 
 net:
   transport: vp8channel

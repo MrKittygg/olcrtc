@@ -12,7 +12,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 echo "======================================"
-echo "Установка зависимостей"
+echo "Installing dependencies"
 echo "======================================"
 
 apt update
@@ -20,7 +20,7 @@ apt install -y git wget curl build-essential
 
 echo
 echo "======================================"
-echo "Установка Go ${GO_VERSION}"
+echo "Install Go ${GO_VERSION}"
 echo "======================================"
 
 cd /tmp
@@ -43,14 +43,14 @@ export PATH=$PATH:/root/go/bin
 
 echo
 echo "======================================"
-echo "Установка Mage"
+echo "Install Mage"
 echo "======================================"
 
 go install github.com/magefile/mage@latest
 
 echo
 echo "======================================"
-echo "Клонирование репозитория"
+echo "Cloning a repository"
 echo "======================================"
 
 cd /root
@@ -63,7 +63,7 @@ cd olcrtc
 
 echo
 echo "======================================"
-echo "Создание swap (если отсутствует)"
+echo "Creating swap (if missing)"
 echo "======================================"
 
 if ! swapon --show | grep -q "/swapfile"; then
@@ -87,49 +87,93 @@ fi
 
 echo
 echo "======================================"
-echo "Сборка проекта"
+echo "Project build"
 echo "======================================"
 
 mage build
 
 if [[ ! -f build/olcrtc-linux-amd64 ]]; then
-    echo "Ошибка: сборка завершилась неудачно."
+    echo "Error: the build failed."
     exit 1
 fi
 
+########################################
+# Provider selection
+########################################
+
 echo
 echo "======================================"
-echo "Настройка сервера"
+echo "Select conferencing provider"
 echo "======================================"
+echo
+echo "1) Jitsi"
+echo "2) Telemost"
+echo "3) Jitsi + Telemost"
+echo
 
-exec 3</dev/tty
+while true; do
+    printf "Select an option [1-3]: " >/dev/tty
+    IFS= read -r PROVIDER_CHOICE </dev/tty
 
-ROOM_ID=""
-
-while [[ -z "$ROOM_ID" ]]; do
-    printf "Введите URL комнаты Jitsi: " >/dev/tty
-    IFS= read -r ROOM_ID <&3
+    case "$PROVIDER_CHOICE" in
+        1)
+            INSTALL_JITSI=true
+            INSTALL_TELEMOST=false
+            break
+            ;;
+        2)
+            INSTALL_JITSI=false
+            INSTALL_TELEMOST=true
+            break
+            ;;
+        3)
+            INSTALL_JITSI=true
+            INSTALL_TELEMOST=true
+            break
+            ;;
+        *)
+            echo "Invalid selection. Please enter 1, 2 or 3."
+            ;;
+    esac
 done
 
-CRYPTO_KEY=""
+########################################
+# Jitsi configuration
+########################################
 
-while [[ -z "$CRYPTO_KEY" ]]; do
-    printf "Введите ключ шифрования: " >/dev/tty
-    IFS= read -rs CRYPTO_KEY <&3
-    echo >/dev/tty
-done
+if [[ "$INSTALL_JITSI" == true ]]; then
 
-cat > server.yaml <<'EOF'
+    echo
+    echo "======================================"
+    echo "Jitsi configuration"
+    echo "======================================"
+
+    JITSI_ROOM=""
+
+    while [[ -z "$JITSI_ROOM" ]]; do
+        printf "Enter Jitsi room URL: " >/dev/tty
+        IFS= read -r JITSI_ROOM </dev/tty
+    done
+
+    JITSI_KEY=""
+
+    while [[ -z "$JITSI_KEY" ]]; do
+        printf "Enter Jitsi crypto key: " >/dev/tty
+        IFS= read -rs JITSI_KEY </dev/tty
+        echo >/dev/tty
+    done
+
+    cat >/opt/olcrtc/server.jitsi.yaml <<EOF
 mode: srv
 
 auth:
   provider: jitsi
 
 room:
-  id: "ROOM_ID"
+  id: "${JITSI_ROOM}"
 
 crypto:
-  key: "CRYPTO_KEY"
+  key: "${JITSI_KEY}"
 
 net:
   transport: datachannel
@@ -144,27 +188,173 @@ data: data
 debug: false
 EOF
 
-sed -i "s|ROOM_ID|${ROOM_ID}|g" server.yaml
-sed -i "s|CRYPTO_KEY|${CRYPTO_KEY}|g" server.yaml
+fi
 
-echo
-echo "======================================"
-echo "Установка бинарника"
-echo "======================================"
+
+########################################
+# Telemost configuration
+########################################
+
+if [[ "$INSTALL_TELEMOST" == true ]]; then
+
+    echo
+    echo "======================================"
+    echo "Telemost configuration"
+    echo "======================================"
+    echo
+    echo "Note:"
+    echo "Telemost requires an existing meeting."
+    echo "This installer does not create Telemost meetings."
+    echo
+
+    TELEMOST_ROOM=""
+
+    while [[ -z "$TELEMOST_ROOM" ]]; do
+        printf "Enter Telemost room URL: " >/dev/tty
+        IFS= read -r TELEMOST_ROOM </dev/tty
+    done
+
+    TELEMOST_KEY=""
+
+    while [[ -z "$TELEMOST_KEY" ]]; do
+        printf "Enter Telemost crypto key: " >/dev/tty
+        IFS= read -rs TELEMOST_KEY </dev/tty
+        echo >/dev/tty
+    done
+
+    cat >/opt/olcrtc/server.telemost.yaml <<EOF
+mode: srv
+
+auth:
+  provider: telemost
+
+room:
+  id: "${TELEMOST_ROOM}"
+
+crypto:
+  key: "${TELEMOST_KEY}"
+
+net:
+  transport: vp8channel
+  dns: "8.8.8.8:53"
+
+liveness:
+  interval: 10s
+  timeout: 5s
+  failures: 3
+
+data: data
+debug: false
+EOF
+
+fi
+
+
+
+# echo
+# echo "======================================"
+# echo "Server configuration"
+# echo "======================================"
+
+# exec 3</dev/tty
+
+# ROOM_ID=""
+
+# while [[ -z "$ROOM_ID" ]]; do
+#     printf "Enter the Jitsi room URL: " >/dev/tty
+#     IFS= read -r ROOM_ID <&3
+# done
+
+# CRYPTO_KEY=""
+
+# while [[ -z "$CRYPTO_KEY" ]]; do
+#     printf "Enter the encryption key: " >/dev/tty
+#     IFS= read -rs CRYPTO_KEY <&3
+#     echo >/dev/tty
+# done
+
+# cat > server.yaml <<'EOF'
+# mode: srv
+
+# auth:
+#   provider: jitsi
+
+# room:
+#   id: "ROOM_ID"
+
+# crypto:
+#   key: "CRYPTO_KEY"
+
+# net:
+#   transport: datachannel
+#   dns: "8.8.8.8:53"
+
+# liveness:
+#   interval: 10s
+#   timeout: 5s
+#   failures: 3
+
+# data: data
+# debug: false
+# EOF
+
+# sed -i "s|ROOM_ID|${ROOM_ID}|g" server.yaml
+# sed -i "s|CRYPTO_KEY|${CRYPTO_KEY}|g" server.yaml
+
+# echo
+# echo "======================================"
+# echo "Installing the binary"
+# echo "======================================"
 
 mkdir -p /opt/olcrtc
 
-cp ./build/olcrtc-linux-amd64 /opt/olcrtc/
-cp ./server.yaml /opt/olcrtc/
+# cp ./build/olcrtc-linux-amd64 /opt/olcrtc/
+# cp ./server.yaml /opt/olcrtc/
 
-rm -f ./server.yaml
+# rm -f ./server.yaml
 
-echo
-echo "======================================"
-echo "Создание systemd сервиса"
-echo "======================================"
+# echo
+# echo "======================================"
+# echo "Creating a systemd service"
+# echo "======================================"
 
-cat > /etc/systemd/system/olcrtc.service <<EOF
+# cat > /etc/systemd/system/olcrtc.service <<EOF
+# [Unit]
+# Description=OlcRTC Proxy Server
+# After=network.target network-online.target
+# StartLimitIntervalSec=0
+
+# [Service]
+# Type=simple
+# WorkingDirectory=/opt/olcrtc
+# ExecStart=/opt/olcrtc/olcrtc-linux-amd64 server.yaml
+# Restart=always
+# RestartSec=5
+# LimitNOFILE=1048576
+
+# [Install]
+# WantedBy=multi-user.target
+# EOF
+
+# if [[ ! -f ./build/olcrtc-linux-amd64 ]]; then
+#     echo "Error: binary file ./build/olcrtc-linux-amd64 not found."
+#     exit 1
+# fi
+
+# systemctl daemon-reload
+# systemctl enable olcrtc.service
+# systemctl start olcrtc.service
+
+
+########################################
+# Install systemd services
+########################################
+
+cp build/olcrtc-linux-amd64 /opt/olcrtc/
+
+if [[ "$INSTALL_JITSI" == true ]]; then
+    # create olcrtc-jitsi.service
+    cat > /etc/systemd/system/olcrtc-jitsi.service <<EOF
 [Unit]
 Description=OlcRTC Proxy Server
 After=network.target network-online.target
@@ -182,18 +372,48 @@ LimitNOFILE=1048576
 WantedBy=multi-user.target
 EOF
 
-if [[ ! -f ./build/olcrtc-linux-amd64 ]]; then
-    echo "Ошибка: бинарный файл ./build/olcrtc-linux-amd64 не найден."
-    exit 1
+fi
+
+if [[ "$INSTALL_TELEMOST" == true ]]; then
+    # create olcrtc-telemost.service
+    cat >/etc/systemd/system/olcrtc-telemost.service <<EOF
+[Unit]
+Description=OlcRTC Telemost Server
+After=network.target network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/olcrtc
+ExecStart=/opt/olcrtc/olcrtc-linux-amd64 server.telemost.yaml
+Restart=always
+RestartSec=5
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=multi-user.target
+EOF
 fi
 
 systemctl daemon-reload
-systemctl enable olcrtc.service
-systemctl start olcrtc.service
+
+if [[ "$INSTALL_JITSI" == true ]]; then
+    systemctl enable olcrtc-jitsi.service
+    systemctl start olcrtc-jitsi.service
+    systemctl --no-pager --full status olcrtc-jitsi.service || true
+fi
+
+if [[ "$INSTALL_TELEMOST" == true ]]; then
+    systemctl enable olcrtc-telemost.service
+    systemctl start olcrtc-telemost.service
+    systemctl --no-pager --full status olcrtc-telemost.service || true
+fi
+
+
 
 echo
 echo "======================================"
-echo "Установка успешно завершена!"
+echo "Installation completed successfully!"
 echo "======================================"
 echo
-systemctl --no-pager --full status olcrtc.service || true
+# systemctl --no-pager --full status olcrtc.service || true

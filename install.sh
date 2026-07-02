@@ -165,30 +165,36 @@ if [[ "$INSTALL_JITSI" == true ]]; then
         echo >/dev/tty
     done
 
-    cat >/opt/olcrtc/server.jitsi.yaml <<EOF
-mode: srv
+    cp docs/examples/server/server.jitsi.datachannel.yaml /opt/olcrtc/server.jitsi.yaml
 
-auth:
-  provider: jitsi
+    sed -i "s|ROOM_ID|$JITSI_ROOM|" server.jitsi.yaml
+    sed -i "s|CRYPTO_KEY|$JITSI_KEY|" server.jitsi.yaml
 
-room:
-  id: "${JITSI_ROOM}"
 
-crypto:
-  key: "${JITSI_KEY}"
+#     cat >/opt/olcrtc/server.jitsi.yaml <<EOF
+# mode: srv
 
-net:
-  transport: datachannel
-  dns: "8.8.8.8:53"
+# auth:
+#   provider: jitsi
 
-liveness:
-  interval: 10s
-  timeout: 5s
-  failures: 3
+# room:
+#   id: "${JITSI_ROOM}"
 
-data: data
-debug: false
-EOF
+# crypto:
+#   key: "${JITSI_KEY}"
+
+# net:
+#   transport: datachannel
+#   dns: "8.8.8.8:53"
+
+# liveness:
+#   interval: 10s
+#   timeout: 5s
+#   failures: 3
+
+# data: data
+# debug: false
+# EOF
 
 fi
 
@@ -224,30 +230,35 @@ if [[ "$INSTALL_TELEMOST" == true ]]; then
         echo >/dev/tty
     done
 
-    cat >/opt/olcrtc/server.telemost.yaml <<EOF
-mode: srv
+    cp docs/examples/server/server.telemost.vp8channel.yaml /opt/olcrtc/server.telemost.yaml
 
-auth:
-  provider: telemost
+    sed -i "s|ROOM_ID|$TELEMOST_ROOM|" server.telemost.yaml
+    sed -i "s|CRYPTO_KEY|$TELEMOST_KEY|" server.telemost.yaml
 
-room:
-  id: "${TELEMOST_ROOM}"
+#     cat >/opt/olcrtc/server.telemost.yaml <<EOF
+# mode: srv
 
-crypto:
-  key: "${TELEMOST_KEY}"
+# auth:
+#   provider: telemost
 
-net:
-  transport: vp8channel
-  dns: "8.8.8.8:53"
+# room:
+#   id: "${TELEMOST_ROOM}"
 
-liveness:
-  interval: 10s
-  timeout: 5s
-  failures: 3
+# crypto:
+#   key: "${TELEMOST_KEY}"
 
-data: data
-debug: false
-EOF
+# net:
+#   transport: vp8channel
+#   dns: "8.8.8.8:53"
+
+# liveness:
+#   interval: 10s
+#   timeout: 5s
+#   failures: 3
+
+# data: data
+# debug: false
+# EOF
 
 fi
 
@@ -352,9 +363,10 @@ fi
 # Install systemd services
 ########################################
 
-cp build/olcrtc-linux-amd64 /opt/olcrtc/
 
 if [[ "$INSTALL_JITSI" == true ]]; then
+    cp build/olcrtc-linux-amd64 /opt/olcrtc/
+    cp /opt/olcrtc/server.jitsi.yaml /opt/olcrtc/server.jitsi.yaml
     # create olcrtc-jitsi.service
     cat > /etc/systemd/system/olcrtc-jitsi.service <<EOF
 [Unit]
@@ -365,7 +377,7 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 WorkingDirectory=/opt/olcrtc
-ExecStart=/opt/olcrtc/olcrtc-linux-amd64 server.yaml
+ExecStart=/opt/olcrtc/olcrtc-linux-amd64 server.jitsi.yaml
 Restart=always
 RestartSec=5
 LimitNOFILE=1048576
@@ -377,6 +389,8 @@ EOF
 fi
 
 if [[ "$INSTALL_TELEMOST" == true ]]; then
+    cp build/olcrtc-linux-amd64 /opt/olcrtc/
+    cp /opt/olcrtc/server.telemost.yaml /opt/olcrtc/server.telemost.yaml
     # create olcrtc-telemost.service
     cat >/etc/systemd/system/olcrtc-telemost.service <<EOF
 [Unit]

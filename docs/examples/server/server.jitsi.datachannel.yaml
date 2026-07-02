@@ -11,12 +11,12 @@ auth:
 # Доступные серверы: meet.small-dm.ru, meet1.arbitr.ru или meet.handyweb.org
 # Проверьте в браузере, какой работает в вашей сети.
 room:
-  id: "https://meet.small-dm.ru/REPLACE_WITH_ROOM_NAME"
+  id: "ROOM_ID"
 
 crypto:
   # 32 байта в hex (64 символа). Сгенерировать: openssl rand -hex 32
   # Можно использовать key_file: "./olcrtc.key", чтобы не хранить секрет прямо здесь.
-  key: "REPLACE_ME_WITH_64_HEX_CHARS" # должен совпадать с клиентом
+  key: "CRYPTO_KEY" # должен совпадать с клиентом
 
 net:
   transport: datachannel

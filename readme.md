@@ -21,7 +21,7 @@ Recommended start: `jitsi + datachannel`.
 ## Quick start using a single command (jitsi)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mrinventorgg/olcrtc/master/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/MrKittygg/olcrtc/master/install.sh | sudo bash
 ```
 
 ## Quick start
@@ -30,7 +30,7 @@ You need Go 1.26+ and mage.
 
 ```sh
 go install github.com/magefile/mage@latest
-git clone https://github.com/mrinventorgg/olcrtc --recurse-submodules
+git clone https://github.com/MrKittygg/olcrtc --recurse-submodules
 cd olcrtc
 mage build
 ```

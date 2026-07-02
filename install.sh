@@ -7,7 +7,7 @@ GO_ARCHIVE="go${GO_VERSION}.linux-amd64.tar.gz"
 GO_URL="https://go.dev/dl/${GO_ARCHIVE}"
 
 if [[ $EUID -ne 0 ]]; then
-    echo "Ошибка: запустите скрипт от root."
+    echo "Error: run the script as root."
     exit 1
 fi
 
@@ -140,6 +140,8 @@ done
 ########################################
 # Jitsi configuration
 ########################################
+
+mkdir -p /opt/olcrtc
 
 if [[ "$INSTALL_JITSI" == true ]]; then
 
@@ -306,7 +308,7 @@ fi
 # echo "Installing the binary"
 # echo "======================================"
 
-mkdir -p /opt/olcrtc
+
 
 # cp ./build/olcrtc-linux-amd64 /opt/olcrtc/
 # cp ./server.yaml /opt/olcrtc/

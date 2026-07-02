@@ -1,3 +1,9 @@
+## Quick start using a single command (jitsi + telemost)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/MrKittygg/olcrtc/master/install.sh | sudo bash
+```
+
 # olcRTC
 
 `olcRTC` (OpenLibreCommunity RTC) is an encrypted TCP-over-WebRTC tunnel. Traffic is disguised as an ordinary video call on allowed services (Jitsi, Yandex Telemost, WbStream). Inside there is XChaCha20-Poly1305 encryption and smux multiplexing over WebRTC data/video channels.
@@ -17,12 +23,6 @@ app -> SOCKS5 -> olcrtc cnc -> WebRTC/SFU service -> olcrtc srv -> internet
 - **Platforms:** Linux, macOS, Windows, Android (gomobile), embeddable Go library
 
 Recommended start: `jitsi + datachannel`.
-
-## Quick start using a single command (jitsi)
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/MrKittygg/olcrtc/master/install.sh | sudo bash
-```
 
 ## Quick start
 

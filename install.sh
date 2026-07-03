@@ -286,4 +286,3 @@ echo "======================================"
 echo "Installation completed successfully!"
 echo "======================================"
 echo
-# systemctl --no-pager --full status olcrtc.service || true

@@ -55,8 +55,12 @@ echo "======================================"
 
 cd /root
 
-if [[ ! -d olcrtc ]]; then
-    git clone https://github.com/openlibrecommunity/olcrtc --recurse-submodules
+if [[ -d olcrtc ]]; then
+    cd olcrtc
+    git pull
+    git submodule update --init --recursive
+else
+    git clone https://github.com/MrKittygg/olcrtc
 fi
 
 cd olcrtc
@@ -219,7 +223,7 @@ fi
 
 
 if [[ "$INSTALL_JITSI" == true ]]; then
-    cp build/olcrtc-linux-amd64 ./server.jitsi.yaml /opt/olcrtc/
+    # cp build/olcrtc-linux-amd64 ./server.jitsi.yaml /opt/olcrtc/
     # cp /opt/olcrtc/server.jitsi.yaml /opt/olcrtc/server.jitsi.yaml
     # create olcrtc-jitsi.service
     cat > /etc/systemd/system/olcrtc-jitsi.service <<EOF
@@ -243,7 +247,7 @@ EOF
 fi
 
 if [[ "$INSTALL_TELEMOST" == true ]]; then
-    cp build/olcrtc-linux-amd64 ./server.telemost.yaml /opt/olcrtc/
+    # cp build/olcrtc-linux-amd64 ./server.telemost.yaml /opt/olcrtc/
     # cp /opt/olcrtc/server.telemost.yaml /opt/olcrtc/server.telemost.yaml
     # create olcrtc-telemost.service
     cat >/etc/systemd/system/olcrtc-telemost.service <<EOF

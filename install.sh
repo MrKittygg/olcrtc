@@ -279,8 +279,6 @@ if [[ "$INSTALL_TELEMOST" == true ]]; then
     systemctl --no-pager --full status olcrtc-telemost.service || true
 fi
 
-
-
 echo
 echo "======================================"
 echo "Installation completed successfully!"

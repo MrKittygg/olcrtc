@@ -1,4 +1,4 @@
-## Quick start using a single command (jitsi + telemost)
+## Quick start using a single command (jitsi + telemost) beta
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/MrKittygg/olcrtc/master/install.sh | sudo bash

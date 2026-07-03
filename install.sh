@@ -219,8 +219,8 @@ fi
 
 
 if [[ "$INSTALL_JITSI" == true ]]; then
-    cp build/olcrtc-linux-amd64 /opt/olcrtc/
-    cp /opt/olcrtc/server.jitsi.yaml /opt/olcrtc/server.jitsi.yaml
+    cp build/olcrtc-linux-amd64 ./server.jitsi.yaml /opt/olcrtc/
+    # cp /opt/olcrtc/server.jitsi.yaml /opt/olcrtc/server.jitsi.yaml
     # create olcrtc-jitsi.service
     cat > /etc/systemd/system/olcrtc-jitsi.service <<EOF
 [Unit]
@@ -243,8 +243,8 @@ EOF
 fi
 
 if [[ "$INSTALL_TELEMOST" == true ]]; then
-    cp build/olcrtc-linux-amd64 /opt/olcrtc/
-    cp /opt/olcrtc/server.telemost.yaml /opt/olcrtc/server.telemost.yaml
+    cp build/olcrtc-linux-amd64 ./server.telemost.yaml /opt/olcrtc/
+    # cp /opt/olcrtc/server.telemost.yaml /opt/olcrtc/server.telemost.yaml
     # create olcrtc-telemost.service
     cat >/etc/systemd/system/olcrtc-telemost.service <<EOF
 [Unit]

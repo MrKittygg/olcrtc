@@ -167,8 +167,8 @@ if [[ "$INSTALL_JITSI" == true ]]; then
 
     cp docs/examples/server/server.jitsi.datachannel.yaml /opt/olcrtc/server.jitsi.yaml
 
-    sed -i "s|ROOM_ID|$JITSI_ROOM|" server.jitsi.yaml
-    sed -i "s|CRYPTO_KEY|$JITSI_KEY|" server.jitsi.yaml
+    sed -i "s|ROOM_ID|$JITSI_ROOM|" /opt/olcrtc/server.jitsi.yaml
+    sed -i "s|CRYPTO_KEY|$JITSI_KEY|" /opt/olcrtc/server.jitsi.yaml
 
 
 #     cat >/opt/olcrtc/server.jitsi.yaml <<EOF
@@ -232,8 +232,8 @@ if [[ "$INSTALL_TELEMOST" == true ]]; then
 
     cp docs/examples/server/server.telemost.vp8channel.yaml /opt/olcrtc/server.telemost.yaml
 
-    sed -i "s|ROOM_ID|$TELEMOST_ROOM|" server.telemost.yaml
-    sed -i "s|CRYPTO_KEY|$TELEMOST_KEY|" server.telemost.yaml
+    sed -i "s|ROOM_ID|$TELEMOST_ROOM|" /opt/olcrtc/server.telemost.yaml
+    sed -i "s|CRYPTO_KEY|$TELEMOST_KEY|" /opt/olcrtc/server.telemost.yaml
 
 #     cat >/opt/olcrtc/server.telemost.yaml <<EOF
 # mode: srv

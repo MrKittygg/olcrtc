@@ -170,32 +170,6 @@ if [[ "$INSTALL_JITSI" == true ]]; then
     sed -i "s|ROOM_ID|$JITSI_ROOM|" /opt/olcrtc/server.jitsi.yaml
     sed -i "s|CRYPTO_KEY|$JITSI_KEY|" /opt/olcrtc/server.jitsi.yaml
 
-
-#     cat >/opt/olcrtc/server.jitsi.yaml <<EOF
-# mode: srv
-
-# auth:
-#   provider: jitsi
-
-# room:
-#   id: "${JITSI_ROOM}"
-
-# crypto:
-#   key: "${JITSI_KEY}"
-
-# net:
-#   transport: datachannel
-#   dns: "8.8.8.8:53"
-
-# liveness:
-#   interval: 10s
-#   timeout: 5s
-#   failures: 3
-
-# data: data
-# debug: false
-# EOF
-
 fi
 
 
@@ -235,129 +209,9 @@ if [[ "$INSTALL_TELEMOST" == true ]]; then
     sed -i "s|ROOM_ID|$TELEMOST_ROOM|" /opt/olcrtc/server.telemost.yaml
     sed -i "s|CRYPTO_KEY|$TELEMOST_KEY|" /opt/olcrtc/server.telemost.yaml
 
-#     cat >/opt/olcrtc/server.telemost.yaml <<EOF
-# mode: srv
 
-# auth:
-#   provider: telemost
-
-# room:
-#   id: "${TELEMOST_ROOM}"
-
-# crypto:
-#   key: "${TELEMOST_KEY}"
-
-# net:
-#   transport: vp8channel
-#   dns: "8.8.8.8:53"
-
-# liveness:
-#   interval: 10s
-#   timeout: 5s
-#   failures: 3
-
-# data: data
-# debug: false
-# EOF
 
 fi
-
-
-
-# echo
-# echo "======================================"
-# echo "Server configuration"
-# echo "======================================"
-
-# exec 3</dev/tty
-
-# ROOM_ID=""
-
-# while [[ -z "$ROOM_ID" ]]; do
-#     printf "Enter the Jitsi room URL: " >/dev/tty
-#     IFS= read -r ROOM_ID <&3
-# done
-
-# CRYPTO_KEY=""
-
-# while [[ -z "$CRYPTO_KEY" ]]; do
-#     printf "Enter the encryption key: " >/dev/tty
-#     IFS= read -rs CRYPTO_KEY <&3
-#     echo >/dev/tty
-# done
-
-# cat > server.yaml <<'EOF'
-# mode: srv
-
-# auth:
-#   provider: jitsi
-
-# room:
-#   id: "ROOM_ID"
-
-# crypto:
-#   key: "CRYPTO_KEY"
-
-# net:
-#   transport: datachannel
-#   dns: "8.8.8.8:53"
-
-# liveness:
-#   interval: 10s
-#   timeout: 5s
-#   failures: 3
-
-# data: data
-# debug: false
-# EOF
-
-# sed -i "s|ROOM_ID|${ROOM_ID}|g" server.yaml
-# sed -i "s|CRYPTO_KEY|${CRYPTO_KEY}|g" server.yaml
-
-# echo
-# echo "======================================"
-# echo "Installing the binary"
-# echo "======================================"
-
-
-
-# cp ./build/olcrtc-linux-amd64 /opt/olcrtc/
-# cp ./server.yaml /opt/olcrtc/
-
-# rm -f ./server.yaml
-
-# echo
-# echo "======================================"
-# echo "Creating a systemd service"
-# echo "======================================"
-
-# cat > /etc/systemd/system/olcrtc.service <<EOF
-# [Unit]
-# Description=OlcRTC Proxy Server
-# After=network.target network-online.target
-# StartLimitIntervalSec=0
-
-# [Service]
-# Type=simple
-# WorkingDirectory=/opt/olcrtc
-# ExecStart=/opt/olcrtc/olcrtc-linux-amd64 server.yaml
-# Restart=always
-# RestartSec=5
-# LimitNOFILE=1048576
-
-# [Install]
-# WantedBy=multi-user.target
-# EOF
-
-# if [[ ! -f ./build/olcrtc-linux-amd64 ]]; then
-#     echo "Error: binary file ./build/olcrtc-linux-amd64 not found."
-#     exit 1
-# fi
-
-# systemctl daemon-reload
-# systemctl enable olcrtc.service
-# systemctl start olcrtc.service
-
 
 ########################################
 # Install systemd services

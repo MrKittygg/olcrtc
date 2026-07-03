@@ -56,7 +56,7 @@ echo "======================================"
 cd /root
 
 if [[ -d olcrtc ]]; then
-    cd olcrtc
+    # cd olcrtc
     git pull
     git submodule update --init --recursive
 else
